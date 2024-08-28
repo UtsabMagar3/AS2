@@ -168,6 +168,12 @@ function generateNewMaze() {
   const playerMouth = player.querySelector(".mouth");
   let playerTop = 0;
   let playerLeft = 0;
+  // Reduces the size of enemy so that it doesn't stuck in the middle
+  function playerSize() {
+    player.style.height = "75%";
+    player.style.width = "75%";
+  }
+  playerSize();
   // Get all the wall elements
   const walls = document.querySelectorAll(".wall");
 
@@ -206,7 +212,6 @@ function generateNewMaze() {
         ) {
           // Player has collected the point
           point.classList.remove("point");
-          playingSound.play();
           score += 10;
           scoreElement.textContent = score;
         }
@@ -232,7 +237,6 @@ function generateNewMaze() {
           lives--;
           updateLives();
           invulnerable = true; // Make player invulnerable for a short period
-          player.classList.add("hit");
           isMoving = false;
           enemyHitSound.play();
           ghostSound.pause();
@@ -322,7 +326,7 @@ function generateNewMaze() {
       generateNewMaze();
     }
   }
-  setInterval(updatePlayerPosition, 5);
+  setInterval(updatePlayerPosition, 2);
 }
 
 function allPointsCollected() {
@@ -479,7 +483,6 @@ function checkPointCollection() {
       ) {
         // Player has collected the point
         point.classList.remove("point");
-        playingSound.play();
         score += 10;
         scoreElement.textContent = score;
       }
@@ -518,7 +521,7 @@ function checkEnemyCollision() {
         // Collision detected
         lives--;
         updateLives();
-        invulnerable = true; // Make player invulnerable for a short period
+        setInterval((invulnerable = true), 3000); // Make player invulnerable for a short period
         player.classList.add("hit");
         isMoving = false;
         enemyHitSound.play();
@@ -819,7 +822,6 @@ function createControlButtons() {
       gameInterval2 = setInterval(moveEnemies, 100);
       startCountdown(); // Resume the countdown
 
-      playingSound.play();
       ghostSound.play();
       pauseBtn.textContent = "Pause";
     } else {
@@ -889,14 +891,19 @@ function gameOver(message) {
   saveScoreToLeaderboard(playerName || "Anonymous", score);
   location.reload(); // Reload the game
 }
-
-// Add the timer to the page on load
+// Reduces the size of enemy so that it doesn't stuck in the middle
+function playerSize() {
+  const player = document.querySelector("#player");
+  player.style.height = "75%";
+  player.style.width = "75%";
+}
 window.onload = () => {
   createTimer(); // Create the timer display
   updateLeaderboardDisplay(); // Load leaderboard
   createClearLeaderboardButton(); // Add clear leaderboard button
   createControlButtons(); // Create mute and pause buttons
   createLevelDisplay(); // Create level display
+  playerSize();
 };
 
 // hides start button on click
@@ -925,7 +932,7 @@ function startButton() {
     // Start the game logic
     document.addEventListener("keydown", keyDown);
     document.addEventListener("keyup", keyUp);
-    gameInterval = setInterval(updatePlayerPosition, 5); // Start the game interval
+    gameInterval = setInterval(updatePlayerPosition, 2); // Start the game interval
     gameInterval2 = setInterval(moveEnemies, 100); // Start the game interval
   });
 }
