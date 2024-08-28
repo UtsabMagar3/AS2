@@ -16,17 +16,47 @@ deathSound.volume = 0.2;
 //Player = 2, Wall = 1, Enemy = 3, Point = 0
 let maze = [
   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 2, 0, 1, 0, 0, 0, 0, 3, 1],
-  [1, 0, 0, 0, 0, 0, 0, 1, 1, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 1, 1, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 1, 1, 1],
-  [1, 0, 0, 1, 0, 3, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 1, 0, 1],
-  [1, 3, 1, 0, 0, 0, 0, 0, 0, 1],
+  [1, 2, 4, 1, 0, 0, 0, 4, 0, 1],
+  [1, 0, 4, 0, 4, 4, 4, 4, 4, 1],
+  [1, 0, 4, 4, 0, 0, 4, 4, 4, 1],
+  [1, 0, 4, 1, 0, 0, 4, 4, 4, 1],
+  [1, 0, 4, 0, 4, 4, 0, 1, 1, 1],
+  [1, 0, 4, 1, 0, 4, 4, 4, 0, 1],
+  [1, 4, 0, 0, 4, 0, 4, 4, 0, 1],
+  [1, 4, 4, 4, 0, 0, 0, 4, 0, 1],
   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 ];
 
+// Randomized the maze layout each time the webpage is refreshed
+function randomizedMaze() {
+  let row = Math.floor(Math.random() * maze.length);
+  let column = Math.floor(Math.random() * maze[row].length);
+
+  if (maze[row][column] == 0) {
+    maze[row][column] = 1;
+  } else {
+    randomizedMaze();
+  }
+}
+
+for (let i = 0; i < 5; i++) {
+  randomizedMaze();
+}
+// Randomized the enemy placement each time the webpage is refreshed
+function randomizedEnemy() {
+  let row = Math.floor(Math.random() * maze.length);
+  let column = Math.floor(Math.random() * maze[row].length);
+
+  if (maze[row][column] == 0) {
+    maze[row][column] = 3;
+  } else {
+    randomizedEnemy();
+  }
+}
+
+for (let i = 0; i < 3; i++) {
+  randomizedEnemy();
+}
 //Populates the maze in the HTML
 for (let y of maze) {
   for (let x of y) {
@@ -55,7 +85,255 @@ for (let y of maze) {
     main.appendChild(block);
   }
 }
+let level = 1; // Initialize level
+const levelElement = document.createElement("div");
+levelElement.classList.add("level");
+levelElement.innerHTML = `Level: <span id="level">${level}</span>`;
 
+function createLevelDisplay() {
+  // Create the level display element
+  const levelDiv = document.createElement("div");
+  levelDiv.classList.add("level-container");
+  levelDiv.appendChild(levelElement);
+
+  document.body.appendChild(levelDiv);
+
+  // Add CSS styles dynamically
+  levelDiv.style.fontSize = "20px";
+  levelDiv.style.top = "200px";
+  levelDiv.style.right = "95px";
+  levelDiv.style.color = "white";
+}
+
+function updateLevelDisplay() {
+  document.querySelector("#level").textContent = level;
+}
+function generateNewMaze() {
+  // Clear the current maze layout
+  main.innerHTML = "";
+
+  // Regenerate the maze layout
+  maze = [
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 2, 4, 1, 0, 0, 0, 4, 0, 1],
+    [1, 0, 4, 0, 4, 4, 4, 4, 4, 1],
+    [1, 0, 4, 4, 0, 0, 4, 4, 4, 1],
+    [1, 0, 4, 1, 0, 0, 4, 4, 4, 1],
+    [1, 0, 4, 0, 4, 4, 0, 1, 1, 1],
+    [1, 0, 4, 1, 0, 4, 4, 4, 0, 1],
+    [1, 4, 0, 0, 4, 0, 4, 4, 0, 1],
+    [1, 4, 4, 4, 0, 0, 0, 4, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  ];
+  // Randomized the maze layout
+  for (let i = 0; i < 5; i++) {
+    randomizedMaze();
+  }
+  for (let i = 0; i < 3; i++) {
+    randomizedEnemy();
+  }
+
+  // Repopulate the maze in the HTML
+  for (let y of maze) {
+    for (let x of y) {
+      let block = document.createElement("div");
+      block.classList.add("block");
+
+      switch (x) {
+        case 1:
+          block.classList.add("wall");
+          break;
+        case 2:
+          block.id = "player";
+          let mouth = document.createElement("div");
+          mouth.classList.add("mouth");
+          block.appendChild(mouth);
+          break;
+        case 3:
+          block.classList.add("enemy");
+          break;
+        default:
+          block.classList.add("point");
+          block.style.height = "1vh";
+          block.style.width = "1vh";
+      }
+
+      main.appendChild(block);
+    }
+  }
+  // Increment and update level
+  level++;
+  updateLevelDisplay();
+  const player = document.querySelector("#player");
+  const playerMouth = player.querySelector(".mouth");
+  let playerTop = 0;
+  let playerLeft = 0;
+  // Get all the wall elements
+  const walls = document.querySelectorAll(".wall");
+
+  function checkCollision() {
+    const playerRect = player.getBoundingClientRect();
+
+    // Check for collisions with walls
+    for (let wall of walls) {
+      const wallRect = wall.getBoundingClientRect();
+      if (
+        playerRect.bottom >= wallRect.top &&
+        playerRect.top <= wallRect.bottom &&
+        playerRect.right >= wallRect.left &&
+        playerRect.left <= wallRect.right
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+  const scoreElement = document.querySelector(".score p");
+  const pointElements = document.querySelectorAll(".point"); // Select all point elements
+  function checkPointCollection() {
+    const playerRect = player.getBoundingClientRect();
+
+    pointElements.forEach((point) => {
+      if (point.classList.contains("point")) {
+        const pointRect = point.getBoundingClientRect();
+
+        if (
+          playerRect.bottom >= pointRect.top &&
+          playerRect.top <= pointRect.bottom &&
+          playerRect.right >= pointRect.left &&
+          playerRect.left <= pointRect.right
+        ) {
+          // Player has collected the point
+          point.classList.remove("point");
+          playingSound.play();
+          score += 10;
+          scoreElement.textContent = score;
+        }
+      }
+    });
+  }
+  const enemies = document.querySelectorAll(".enemy");
+  function checkEnemyCollision() {
+    if (!invulnerable) {
+      const playerRect = player.getBoundingClientRect();
+
+      enemies.forEach((enemy) => {
+        const enemyRect = enemy.getBoundingClientRect();
+
+        // Check if the player is colliding with an enemy
+        if (
+          playerRect.bottom > enemyRect.top &&
+          playerRect.top < enemyRect.bottom &&
+          playerRect.right > enemyRect.left &&
+          playerRect.left < enemyRect.right
+        ) {
+          // Collision detected
+          lives--;
+          updateLives();
+          invulnerable = true; // Make player invulnerable for a short period
+          player.classList.add("hit");
+          isMoving = false;
+          enemyHitSound.play();
+          ghostSound.pause();
+
+          setTimeout(() => {
+            invulnerable = false; // Restore vulnerability after the cooldown
+            player.classList.remove("hit");
+            isMoving = true;
+            ghostSound.play();
+          }, 3000);
+          if (lives == 0) {
+            player.classList.remove("hit");
+            player.classList.add("dead");
+            deathSound.play();
+
+            setTimeout(() => {
+              ghostSound.pause();
+              ghostSound.loop = false;
+
+              // Prompt the player for their name
+              const playerName = prompt(
+                "Game Over! Your score was " +
+                  score +
+                  ". Enter your name or leave blank to play anonymously."
+              );
+
+              // Save score to the leaderboard
+              saveScoreToLeaderboard(playerName || "Anonymous", score);
+
+              location.reload();
+            }, 3000);
+          }
+        }
+      });
+    }
+  }
+
+  let isMoving = true;
+
+  function updatePlayerPosition() {
+    if (isMoving) {
+      if (upPressed) {
+        playerTop--;
+        player.style.top = playerTop + "px";
+        playerMouth.classList = "up";
+        if (checkCollision()) {
+          playerTop += 2;
+          player.style.top = playerTop + "px";
+        }
+        checkPointCollection();
+        checkEnemyCollision();
+      } else if (downPressed) {
+        playerTop++;
+        player.style.top = playerTop + "px";
+        playerMouth.classList = "down";
+        if (checkCollision()) {
+          playerTop -= 2;
+          player.style.top = playerTop + "px";
+        }
+        checkPointCollection();
+        checkEnemyCollision();
+      } else if (leftPressed) {
+        playerLeft--;
+        player.style.left = playerLeft + "px";
+        playerMouth.classList = "left";
+        if (checkCollision()) {
+          playerLeft += 2;
+          player.style.left = playerLeft + "px";
+        }
+        checkPointCollection();
+        checkEnemyCollision();
+      } else if (rightPressed) {
+        playerLeft++;
+        player.style.left = playerLeft + "px";
+        playerMouth.classList = "right";
+        if (checkCollision()) {
+          playerLeft -= 2;
+          player.style.left = playerLeft + "px";
+        }
+      }
+
+      checkPointCollection();
+      checkEnemyCollision();
+    }
+    if (allPointsCollected()) {
+      resetTimer();
+      generateNewMaze();
+    }
+  }
+  setInterval(updatePlayerPosition, 5);
+}
+
+function allPointsCollected() {
+  // Check if there are any points left in the maze
+  return !Array.from(document.querySelectorAll(".point")).length;
+}
+function resetTimer() {
+  clearInterval(countdownInterval);
+  countdownTime = 60; // Reset to 1 minute
+  startCountdown();
+}
 //Player movement
 function keyUp(event) {
   if (event.key === "ArrowUp") {
@@ -201,6 +479,7 @@ function checkPointCollection() {
       ) {
         // Player has collected the point
         point.classList.remove("point");
+        playingSound.play();
         score += 10;
         scoreElement.textContent = score;
       }
@@ -243,14 +522,12 @@ function checkEnemyCollision() {
         player.classList.add("hit");
         isMoving = false;
         enemyHitSound.play();
-        playingSound.pause();
         ghostSound.pause();
 
         setTimeout(() => {
           invulnerable = false; // Restore vulnerability after the cooldown
           player.classList.remove("hit");
           isMoving = true;
-          playingSound.play();
           ghostSound.play();
         }, 3000);
         if (lives == 0) {
@@ -259,8 +536,8 @@ function checkEnemyCollision() {
           deathSound.play();
 
           setTimeout(() => {
-            playingSound.pause();
             ghostSound.pause();
+            ghostSound.loop = false;
 
             // Prompt the player for their name
             const playerName = prompt(
@@ -277,6 +554,84 @@ function checkEnemyCollision() {
         }
       }
     });
+  }
+}
+function randomNumber() {
+  return Math.floor(Math.random() * 4) + 1;
+}
+
+let direction = randomNumber();
+
+// Collision detection with walls for enemies
+function checkWallCollisionForEnemy(enemy) {
+  const enemyBoundary = enemy.getBoundingClientRect();
+  const walls = document.getElementsByClassName("wall");
+
+  for (let wall of walls) {
+    const WallBoundary = wall.getBoundingClientRect();
+
+    if (
+      enemyBoundary.top < WallBoundary.bottom &&
+      enemyBoundary.bottom > WallBoundary.top &&
+      enemyBoundary.left < WallBoundary.right &&
+      enemyBoundary.right > WallBoundary.left
+    ) {
+      // Collision detected with wall
+      return true;
+    }
+  }
+
+  // No collision with walls
+  return false;
+}
+
+// Function to move the enemies
+
+function moveEnemies() {
+  const enemies = document.getElementsByClassName("enemy");
+
+  for (let enemy of enemies) {
+    let enemyTop = parseInt(enemy.style.top) || 0;
+    let enemyLeft = parseInt(enemy.style.left) || 0;
+    let direction = enemy.direction || randomNumber();
+
+    if (direction === 1) {
+      // MOVE DOWN
+      enemy.style.top = enemyTop + 10 + "px";
+      if (checkWallCollisionForEnemy(enemy)) {
+        enemy.style.top = enemyTop + "px";
+        direction = randomNumber();
+      }
+    }
+
+    if (direction === 2) {
+      // MOVE UP
+      enemy.style.top = enemyTop - 10 + "px";
+      if (checkWallCollisionForEnemy(enemy)) {
+        enemy.style.top = enemyTop + "px";
+        direction = randomNumber();
+      }
+    }
+
+    if (direction === 3) {
+      // MOVE LEFT
+      enemy.style.left = enemyLeft - 10 + "px";
+      if (checkWallCollisionForEnemy(enemy)) {
+        enemy.style.left = enemyLeft + "px";
+        direction = randomNumber();
+      }
+    }
+
+    if (direction === 4) {
+      // MOVE RIGHT
+      enemy.style.left = enemyLeft + 10 + "px";
+      if (checkWallCollisionForEnemy(enemy)) {
+        enemy.style.left = enemyLeft + "px";
+        direction = randomNumber();
+      }
+    }
+
+    enemy.direction = direction;
   }
 }
 
@@ -327,7 +682,7 @@ function createClearLeaderboardButton() {
   clearButton.textContent = "Clear Leaderboard";
   // Set button styles (optional)
   clearButton.style.padding = "10px 20px";
-  clearButton.style.marginTop = "50px";
+  clearButton.style.marginTop = "30px";
   clearButton.style.backgroundColor = "red";
   clearButton.style.color = "white";
   clearButton.style.border = "none";
@@ -349,9 +704,8 @@ function updatePlayerPosition() {
       playerTop--;
       player.style.top = playerTop + "px";
       playerMouth.classList = "up";
-
       if (checkCollision()) {
-        playerTop = playerTop + 2;
+        playerTop += 2;
         player.style.top = playerTop + "px";
       }
       checkPointCollection();
@@ -361,7 +715,7 @@ function updatePlayerPosition() {
       player.style.top = playerTop + "px";
       playerMouth.classList = "down";
       if (checkCollision()) {
-        playerTop = playerTop - 2;
+        playerTop -= 2;
         player.style.top = playerTop + "px";
       }
       checkPointCollection();
@@ -371,7 +725,7 @@ function updatePlayerPosition() {
       player.style.left = playerLeft + "px";
       playerMouth.classList = "left";
       if (checkCollision()) {
-        playerLeft = playerLeft + 2;
+        playerLeft += 2;
         player.style.left = playerLeft + "px";
       }
       checkPointCollection();
@@ -381,14 +735,21 @@ function updatePlayerPosition() {
       player.style.left = playerLeft + "px";
       playerMouth.classList = "right";
       if (checkCollision()) {
-        playerLeft = playerLeft - 2;
+        playerLeft -= 2;
         player.style.left = playerLeft + "px";
       }
     }
+
     checkPointCollection();
     checkEnemyCollision();
+
+    if (allPointsCollected()) {
+      resetTimer();
+      generateNewMaze();
+    }
   }
 }
+
 let gameInterval; // Define the interval variable globally
 
 function createControlButtons() {
@@ -399,6 +760,7 @@ function createControlButtons() {
   const muteBtn = document.createElement("button");
   muteBtn.id = "muteBtn";
   muteBtn.textContent = "Mute";
+  muteBtn.style.marginTop = "20px";
   muteBtn.style.padding = "10px 20px";
   muteBtn.style.backgroundColor = "black";
   muteBtn.style.color = "white";
@@ -411,6 +773,7 @@ function createControlButtons() {
   const pauseBtn = document.createElement("button");
   pauseBtn.id = "pauseBtn";
   pauseBtn.textContent = "Pause";
+  pauseBtn.style.marginTop = "20px";
   pauseBtn.style.padding = "10px 20px";
   pauseBtn.style.backgroundColor = "black";
   pauseBtn.style.color = "white";
@@ -453,7 +816,8 @@ function createControlButtons() {
     if (isPaused) {
       // Resume the game
       gameInterval = setInterval(updatePlayerPosition, 2);
-      countdownInterval = setInterval(startCountdown, 1000);
+      gameInterval2 = setInterval(moveEnemies, 100);
+      startCountdown(); // Resume the countdown
 
       playingSound.play();
       ghostSound.play();
@@ -462,8 +826,8 @@ function createControlButtons() {
       // Pause the game
       clearInterval(gameInterval);
       clearInterval(countdownInterval);
+      clearInterval(gameInterval2);
 
-      playingSound.pause();
       ghostSound.pause();
       pauseBtn.textContent = "Resume";
     }
@@ -488,6 +852,7 @@ function startCountdown() {
     } else {
       clearInterval(countdownInterval); // Stop countdown
       clearInterval(gameInterval); // Stop the game loop
+      ghostSound.pause();
       gameOver("Time is up!"); // Trigger game over
     }
   }, 1000);
@@ -503,9 +868,7 @@ function createTimer() {
   document.body.appendChild(timerDiv);
 
   // Add CSS styles dynamically
-  timerDiv.style.fontSize = "10px";
-  timerDiv.style.position = "fixed";
-  timerDiv.style.top = "150px";
+  timerDiv.style.fontSize = "8px";
   timerDiv.style.right = "65px";
   timerDiv.style.color = "white";
 }
@@ -533,6 +896,7 @@ window.onload = () => {
   updateLeaderboardDisplay(); // Load leaderboard
   createClearLeaderboardButton(); // Add clear leaderboard button
   createControlButtons(); // Create mute and pause buttons
+  createLevelDisplay(); // Create level display
 };
 
 // hides start button on click
@@ -555,13 +919,14 @@ function startButton() {
     document.querySelector("#pauseBtn").disabled = false;
 
     // Play the game background sound and ghost sound
-    playingSound.play();
     ghostSound.play();
+    ghostSound.loop = true;
 
     // Start the game logic
     document.addEventListener("keydown", keyDown);
     document.addEventListener("keyup", keyUp);
-    gameInterval = setInterval(updatePlayerPosition, 2); // Start the game interval
+    gameInterval = setInterval(updatePlayerPosition, 5); // Start the game interval
+    gameInterval2 = setInterval(moveEnemies, 100); // Start the game interval
   });
 }
 
