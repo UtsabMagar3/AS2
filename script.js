@@ -6,6 +6,7 @@ const main = document.querySelector("main");
 const introSound = new Audio("audios/gameIntro.mp3");
 const playingSound = new Audio("audios/playing.wav");
 playingSound.volume = 0.2;
+let timer;
 const ghostSound = new Audio("audios/ghost.mp3");
 ghostSound.volume = 0.2;
 const enemyHitSound = new Audio("audios/enemyHit.mp3");
@@ -100,8 +101,6 @@ function createLevelDisplay() {
 
   // Add CSS styles dynamically
   levelDiv.style.fontSize = "20px";
-  levelDiv.style.top = "200px";
-  levelDiv.style.right = "95px";
   levelDiv.style.color = "white";
 }
 
@@ -246,7 +245,7 @@ function generateNewMaze() {
             player.classList.remove("hit");
             isMoving = true;
             ghostSound.play();
-          }, 3000);
+          }, 2000);
           if (lives == 0) {
             player.classList.remove("hit");
             player.classList.add("dead");
@@ -265,9 +264,8 @@ function generateNewMaze() {
 
               // Save score to the leaderboard
               saveScoreToLeaderboard(playerName || "Anonymous", score);
-
-              location.reload();
-            }, 3000);
+              showRestartButton();
+            }, 1500);
           }
         }
       });
@@ -379,61 +377,33 @@ function stopMovement() {
   clearInterval(moveInterval);
   moveInterval = null;
 }
-// Left button (lbttn) movement
-document.querySelector("#lbttn").addEventListener("mousedown", () => {
-  leftPressed = true;
-  startMovement("left", 100); // Repeat every 100ms for continuous movement
-});
-document.querySelector("#lbttn").addEventListener("mouseup", () => {
-  leftPressed = false;
-  stopMovement();
-});
-document.querySelector("#lbttn").addEventListener("mouseleave", () => {
-  leftPressed = false;
-  stopMovement();
-});
 
-// Up button (ubttn) movement
-document.querySelector("#ubttn").addEventListener("mousedown", () => {
-  upPressed = true;
-  startMovement("up", 100); // Repeat every 100ms for continuous movement
-});
-document.querySelector("#ubttn").addEventListener("mouseup", () => {
-  upPressed = false;
-  stopMovement();
-});
-document.querySelector("#ubttn").addEventListener("mouseleave", () => {
-  upPressed = false;
-  stopMovement();
-});
+// Function to create and display restart button
+function showRestartButton() {
+  const restartButton = document.createElement("button");
+  restartButton.textContent = "Restart";
+  restartButton.classList.add("restart-button");
 
-// Right button (rbttn) movement
-document.querySelector("#rbttn").addEventListener("mousedown", () => {
-  rightPressed = true;
-  startMovement("right", 100); // Repeat every 100ms for continuous movement
-});
-document.querySelector("#rbttn").addEventListener("mouseup", () => {
-  rightPressed = false;
-  stopMovement();
-});
-document.querySelector("#rbttn").addEventListener("mouseleave", () => {
-  rightPressed = false;
-  stopMovement();
-});
+  // Add CSS styles dynamically (or add them to your CSS file)
+  restartButton.style.position = "absolute";
+  restartButton.style.top = "50%";
+  restartButton.style.left = "50%";
+  restartButton.style.transform = "translate(-50%, -50%)";
+  restartButton.style.padding = "10px 20px";
+  restartButton.style.fontSize = "20px";
+  restartButton.style.backgroundColor = "red";
+  restartButton.style.color = "white";
+  restartButton.style.border = "none";
+  restartButton.style.borderRadius = "5px";
+  restartButton.style.cursor = "pointer";
 
-// Down button (dbttn) movement
-document.querySelector("#dbttn").addEventListener("mousedown", () => {
-  downPressed = true;
-  startMovement("down", 100); // Repeat every 100ms for continuous movement
-});
-document.querySelector("#dbttn").addEventListener("mouseup", () => {
-  downPressed = false;
-  stopMovement();
-});
-document.querySelector("#dbttn").addEventListener("mouseleave", () => {
-  downPressed = false;
-  stopMovement();
-});
+  document.body.appendChild(restartButton);
+
+  // Add event listener to restart the game
+  restartButton.addEventListener("click", () => {
+    location.reload(); // Reload the page to restart the game
+  });
+}
 
 // Code for wall collision detection
 const player = document.querySelector("#player");
@@ -485,6 +455,15 @@ function checkPointCollection() {
         point.classList.remove("point");
         score += 10;
         scoreElement.textContent = score;
+        playingSound.play();
+
+        if (timer) {
+          clearTimeout(timer);
+        }
+
+        timer = setTimeout(() => {
+          playingSound.pause();
+        }, 250);
       }
     }
   });
@@ -521,7 +500,7 @@ function checkEnemyCollision() {
         // Collision detected
         lives--;
         updateLives();
-        setInterval((invulnerable = true), 3000); // Make player invulnerable for a short period
+        invulnerable = true;
         player.classList.add("hit");
         isMoving = false;
         enemyHitSound.play();
@@ -532,7 +511,7 @@ function checkEnemyCollision() {
           player.classList.remove("hit");
           isMoving = true;
           ghostSound.play();
-        }, 3000);
+        }, 2000);
         if (lives == 0) {
           player.classList.remove("hit");
           player.classList.add("dead");
@@ -552,8 +531,8 @@ function checkEnemyCollision() {
             // Save score to the leaderboard
             saveScoreToLeaderboard(playerName || "Anonymous", score);
 
-            location.reload();
-          }, 3000);
+            showRestartButton();
+          }, 1500);
         }
       }
     });
@@ -856,6 +835,7 @@ function startCountdown() {
       clearInterval(gameInterval); // Stop the game loop
       ghostSound.pause();
       gameOver("Time is up!"); // Trigger game over
+      showRestartButton();
     }
   }, 1000);
 }
@@ -871,6 +851,7 @@ function createTimer() {
 
   // Add CSS styles dynamically
   timerDiv.style.fontSize = "8px";
+  timerDiv.style.top = "150px";
   timerDiv.style.right = "65px";
   timerDiv.style.color = "white";
 }
@@ -889,7 +870,6 @@ function gameOver(message) {
 
   // Save score to the leaderboard
   saveScoreToLeaderboard(playerName || "Anonymous", score);
-  location.reload(); // Reload the game
 }
 // Reduces the size of enemy so that it doesn't stuck in the middle
 function playerSize() {
@@ -938,3 +918,59 @@ function startButton() {
 }
 
 startDiv.addEventListener("click", startButton);
+
+// Left button (lbttn) movement
+document.querySelector("#lbttn").addEventListener("mousedown", () => {
+  leftPressed = true;
+  startMovement("left", 100); // Repeat every 100ms for continuous movement
+});
+document.querySelector("#lbttn").addEventListener("mouseup", () => {
+  leftPressed = false;
+  stopMovement();
+});
+document.querySelector("#lbttn").addEventListener("mouseleave", () => {
+  leftPressed = false;
+  stopMovement();
+});
+
+// Up button (ubttn) movement
+document.querySelector("#ubttn").addEventListener("mousedown", () => {
+  upPressed = true;
+  startMovement("up", 100); // Repeat every 100ms for continuous movement
+});
+document.querySelector("#ubttn").addEventListener("mouseup", () => {
+  upPressed = false;
+  stopMovement();
+});
+document.querySelector("#ubttn").addEventListener("mouseleave", () => {
+  upPressed = false;
+  stopMovement();
+});
+
+// Right button (rbttn) movement
+document.querySelector("#rbttn").addEventListener("mousedown", () => {
+  rightPressed = true;
+  startMovement("right", 100); // Repeat every 100ms for continuous movement
+});
+document.querySelector("#rbttn").addEventListener("mouseup", () => {
+  rightPressed = false;
+  stopMovement();
+});
+document.querySelector("#rbttn").addEventListener("mouseleave", () => {
+  rightPressed = false;
+  stopMovement();
+});
+
+// Down button (dbttn) movement
+document.querySelector("#dbttn").addEventListener("mousedown", () => {
+  downPressed = true;
+  startMovement("down", 100); // Repeat every 100ms for continuous movement
+});
+document.querySelector("#dbttn").addEventListener("mouseup", () => {
+  downPressed = false;
+  stopMovement();
+});
+document.querySelector("#dbttn").addEventListener("mouseleave", () => {
+  downPressed = false;
+  stopMovement();
+});
