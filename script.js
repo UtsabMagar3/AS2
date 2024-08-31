@@ -16,16 +16,19 @@ let moveInterval; // Interval for movement
 let countdownInterval; // Interval for countdown timer
 let countdownTime = 60; // Countdown timer for each level (in seconds)
 
+// Difficulty settings per level
+let maxEnemies = 3; // Starts with 3 enemies
+let enemySpeed = 10; // Initial speed of enemy movement
+
 // Sounds
 const introSound = new Audio("audios/gameIntro.mp3");
-const playingSound = new Audio("audios/playing.wav");
+const pointSound = new Audio("audios/playing.wav");
 const ghostSound = new Audio("audios/ghost.mp3");
 const enemyHitSound = new Audio("audios/enemyHit.mp3");
 const deathSound = new Audio("audios/death.wav");
 
 // Set volume levels for sounds
-introSound.volume = 0.1;
-playingSound.volume = 0.1;
+pointSound.volume = 0.1;
 ghostSound.volume = 0.1;
 enemyHitSound.volume = 0.1;
 deathSound.volume = 0.1;
@@ -120,11 +123,22 @@ function createLevelDisplay() {
 
   // Add CSS styles
   levelDiv.style.fontSize = "20px";
+  levelDiv.style.height = "20px";
+  levelDiv.style.marginTop = "5px";
   levelDiv.style.color = "white";
 }
 // Function to update level display after each level
 function updateLevelDisplay() {
   document.querySelector("#level").textContent = level;
+}
+
+// Function to increase difficulty per level
+function increaseDifficulty() {
+  // Add more enemies every level
+  maxEnemies += 1;
+
+  // Increase enemy speed slightly per level
+  enemySpeed -= 1; // Faster speed
 }
 // Function to generate new maze layout
 function generateNewMaze() {
@@ -145,11 +159,12 @@ function generateNewMaze() {
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   ];
 
-  for (let i = 0; i < 5; i++) {
-    randomizedMaze();
+  // Add walls and enemies as difficulty increases
+  for (let i = 0; i < level * 5; i++) {
+    randomizedMaze(); // Add more walls
   }
-  for (let i = 0; i < 3; i++) {
-    randomizedEnemy();
+  for (let i = 0; i < maxEnemies; i++) {
+    randomizedEnemy(); // Add more enemies
   }
 
   // Repopulate the maze in the HTML
@@ -183,6 +198,8 @@ function generateNewMaze() {
   // Increment and update level
   level++;
   updateLevelDisplay();
+  increaseDifficulty();
+
   const player = document.querySelector("#player");
   const playerMouth = player.querySelector(".mouth");
   let playerTop = 0;
@@ -239,14 +256,14 @@ function generateNewMaze() {
           point.classList.remove("point");
           score += 10;
           scoreElement.textContent = score;
-          playingSound.play();
+          pointSound.play();
 
           if (timer) {
             clearTimeout(timer);
           }
 
           timer = setTimeout(() => {
-            playingSound.pause();
+            pointSound.pause();
           }, 250);
         }
       }
@@ -362,7 +379,7 @@ function generateNewMaze() {
       generateNewMaze();
     }
   }
-  setInterval(updatePlayerPosition, 2);
+  setInterval(updatePlayerPosition, 5);
 }
 // Function to check if all points have been collected
 function allPointsCollected() {
@@ -418,6 +435,12 @@ function stopMovement() {
 
 // Function to create and display restart button
 function showRestartButton() {
+  clearInterval(countdownInterval);
+  clearInterval(gameInterval);
+  clearInterval(enemyInterval);
+  ghostSound.muted = true;
+  enemyHitSound.muted = true;
+
   const restartButton = document.createElement("button");
   restartButton.textContent = "Restart";
   restartButton.classList.add("restart-button");
@@ -492,14 +515,14 @@ function checkPointCollection() {
         point.classList.remove("point");
         score += 10;
         scoreElement.textContent = score;
-        playingSound.play();
+        pointSound.play();
 
         if (timer) {
           clearTimeout(timer);
         }
 
         timer = setTimeout(() => {
-          playingSound.pause();
+          pointSound.pause();
         }, 250);
       }
     }
@@ -581,7 +604,7 @@ function randomNumber() {
 let direction = randomNumber();
 
 // Function to check collision of enemies with walls
-function checkWallCollisionForEnemy(enemy) {
+function detectEnemyWallCollision(enemy) {
   const enemyBoundary = enemy.getBoundingClientRect();
   const walls = document.getElementsByClassName("wall");
 
@@ -615,8 +638,8 @@ function moveEnemies() {
 
     if (direction === 1) {
       // MOVE DOWN
-      enemy.style.top = enemyTop + 10 + "px";
-      if (checkWallCollisionForEnemy(enemy)) {
+      enemy.style.top = enemyTop + enemySpeed + "px";
+      if (detectEnemyWallCollision(enemy)) {
         enemy.style.top = enemyTop + "px";
         direction = randomNumber();
       }
@@ -624,8 +647,8 @@ function moveEnemies() {
 
     if (direction === 2) {
       // MOVE UP
-      enemy.style.top = enemyTop - 10 + "px";
-      if (checkWallCollisionForEnemy(enemy)) {
+      enemy.style.top = enemyTop - enemySpeed + "px";
+      if (detectEnemyWallCollision(enemy)) {
         enemy.style.top = enemyTop + "px";
         direction = randomNumber();
       }
@@ -633,8 +656,8 @@ function moveEnemies() {
 
     if (direction === 3) {
       // MOVE LEFT
-      enemy.style.left = enemyLeft - 10 + "px";
-      if (checkWallCollisionForEnemy(enemy)) {
+      enemy.style.left = enemyLeft - enemySpeed + "px";
+      if (detectEnemyWallCollision(enemy)) {
         enemy.style.left = enemyLeft + "px";
         direction = randomNumber();
       }
@@ -642,8 +665,8 @@ function moveEnemies() {
 
     if (direction === 4) {
       // MOVE RIGHT
-      enemy.style.left = enemyLeft + 10 + "px";
-      if (checkWallCollisionForEnemy(enemy)) {
+      enemy.style.left = enemyLeft + enemySpeed + "px";
+      if (detectEnemyWallCollision(enemy)) {
         enemy.style.left = enemyLeft + "px";
         direction = randomNumber();
       }
@@ -814,14 +837,14 @@ function createControlButtons() {
   muteBtn.addEventListener("click", function () {
     isMuted = !isMuted;
     if (isMuted) {
-      playingSound.muted = true;
+      pointSound.muted = true;
       ghostSound.muted = true;
       enemyHitSound.muted = true;
       deathSound.muted = true;
       introSound.muted = true;
       muteBtn.textContent = "Unmute";
     } else {
-      playingSound.muted = false;
+      pointSound.muted = false;
       ghostSound.muted = false;
       enemyHitSound.muted = false;
       deathSound.muted = false;
@@ -887,8 +910,11 @@ function createTimer() {
   document.body.appendChild(timerDiv);
 
   // Add CSS styles dynamically
-  timerDiv.style.fontSize = "8px";
-  timerDiv.style.top = "150px";
+  timerDiv.style.fontSize = "10px";
+  timerDiv.style.height = "20px";
+  timerDiv.style.position = "absolute";
+  timerDiv.style.textDecoration = "underline";
+  timerDiv.style.top = "200px";
   timerDiv.style.right = "65px";
   timerDiv.style.color = "white";
 }
@@ -949,7 +975,7 @@ function startButton() {
     // Start the game logic
     document.addEventListener("keydown", keyDown);
     document.addEventListener("keyup", keyUp);
-    gameInterval = setInterval(updatePlayerPosition, 2); // Start the game interval
+    gameInterval = setInterval(updatePlayerPosition, 5); // Start the game interval
     enemyInterval = setInterval(moveEnemies, 100); // Start the game interval
   });
 }
