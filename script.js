@@ -17,7 +17,7 @@ let countdownInterval; // Interval for countdown timer
 let countdownTime = 60; // Countdown timer for each level (in seconds)
 
 // Difficulty settings per level
-let maxEnemies = 2; // Starts with 3 enemies
+let maxEnemies = 2;
 let enemySpeed = 10; // Initial speed of enemy movement
 
 // Sounds
@@ -75,7 +75,7 @@ function randomizedEnemy() {
     randomizedEnemy();
   }
 }
-// Place 3 enemies randomly
+// Place enemies randomly
 for (let i = 0; i < 1; i++) {
   randomizedEnemy();
 }
