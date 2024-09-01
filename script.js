@@ -17,7 +17,7 @@ let countdownInterval; // Interval for countdown timer
 let countdownTime = 60; // Countdown timer for each level (in seconds)
 
 // Difficulty settings per level
-let maxEnemies = 3; // Starts with 3 enemies
+let maxEnemies = 2; // Starts with 3 enemies
 let enemySpeed = 10; // Initial speed of enemy movement
 
 // Sounds
@@ -60,7 +60,7 @@ function randomizedMaze() {
   }
 }
 // Randomly replace points with walls
-for (let i = 0; i < 5; i++) {
+for (let i = 0; i < 3; i++) {
   randomizedMaze();
 }
 
@@ -76,7 +76,7 @@ function randomizedEnemy() {
   }
 }
 // Place 3 enemies randomly
-for (let i = 0; i < 3; i++) {
+for (let i = 0; i < 1; i++) {
   randomizedEnemy();
 }
 
@@ -138,7 +138,7 @@ function increaseDifficulty() {
   maxEnemies += 1;
 
   // Increase enemy speed slightly per level
-  enemySpeed -= 1; // Faster speed
+  enemySpeed += 1; // Faster speed
 }
 // Function to generate new maze layout
 function generateNewMaze() {
@@ -159,8 +159,8 @@ function generateNewMaze() {
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   ];
 
-  // Add walls and enemies as difficulty increases
-  for (let i = 0; i < level * 5; i++) {
+  // Add walls as difficulty increases
+  for (let i = 0; i < level * 3; i++) {
     randomizedMaze(); // Add more walls
   }
   for (let i = 0; i < maxEnemies; i++) {
@@ -291,6 +291,7 @@ function generateNewMaze() {
           // Collision detected
           lives--;
           updateLives();
+          player.classList.add("hit");
           invulnerable = true; // Make player invulnerable for a short period
           isMoving = false;
           enemyHitSound.play();
@@ -381,6 +382,7 @@ function generateNewMaze() {
   }
   setInterval(updatePlayerPosition, 5);
 }
+
 // Function to check if all points have been collected
 function allPointsCollected() {
   // Check if there are any points left in the maze
@@ -858,18 +860,18 @@ function createControlButtons() {
   pauseBtn.addEventListener("click", function () {
     if (isPaused) {
       // Resume the game
-      gameInterval = setInterval(updatePlayerPosition, 2);
+      gameInterval = setInterval(updatePlayerPosition, 5);
       enemyInterval = setInterval(moveEnemies, 100);
       startCountdown(); // Resume the countdown
-
+      isMoving = true;
       ghostSound.play();
       pauseBtn.textContent = "Pause";
     } else {
       // Pause the game
       clearInterval(gameInterval);
+      isMoving = false;
       clearInterval(countdownInterval);
       clearInterval(enemyInterval);
-
       ghostSound.pause();
       pauseBtn.textContent = "Resume";
     }
